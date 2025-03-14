@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { getCurrentUser, getUserProfile, logoutUser } from '../lib/auth';
 import { useRouter } from 'next/navigation';
