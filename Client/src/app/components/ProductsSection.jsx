@@ -5,14 +5,57 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 
 const products = [
-  { name: "Fresh Bananas", price: "4.99", image: "/placeholder.svg?height=200&width=200", badge: "Sale", category: "fruits" },
-  { name: "Organic Tomatoes", price: "3.99", image: "/placeholder.svg?height=200&width=200", category: "vegetables" },
-  { name: "Sweet Oranges", price: "5.99", image: "/placeholder.svg?height=200&width=200", badge: "New", category: "fruits" },
-  { name: "Red Apples", price: "2.99", image: "/placeholder.svg?height=200&width=200", category: "fruits" },
-  { name: "Fresh Broccoli", price: "3.49", image: "/placeholder.svg?height=200&width=200", category: "vegetables" },
-  { name: "Organic Carrots", price: "2.49", image: "/placeholder.svg?height=200&width=200", category: "vegetables" },
-  { name: "Green Lettuce", price: "1.99", image: "/placeholder.svg?height=200&width=200", category: "vegetables" },
-  { name: "Fresh Strawberries", price: "6.99", image: "/placeholder.svg?height=200&width=200", badge: "Popular", category: "fruits" },
+  { 
+    name: "Fresh Bananas", 
+    price: "4.99", 
+    image: "https://images.unsplash.com/photo-1543218024-57a70143c369?w=500&h=500&fit=crop", 
+    badge: "Sale", 
+    category: "fruits" 
+  },
+  { 
+    name: "Organic Tomatoes", 
+    price: "3.99", 
+    image: "https://images.unsplash.com/photo-1546470427-f5d8c4edf3e2?w=500&h=500&fit=crop", 
+    category: "vegetables" 
+  },
+  { 
+    name: "Sweet Oranges", 
+    price: "5.99", 
+    image: "https://images.unsplash.com/photo-1587735243615-c03f25aaff15?w=500&h=500&fit=crop", 
+    badge: "New", 
+    category: "fruits" 
+  },
+  { 
+    name: "Red Apples", 
+    price: "2.99", 
+    image: "https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=500&h=500&fit=crop", 
+    category: "fruits" 
+  },
+  { 
+    name: "Fresh Broccoli", 
+    price: "3.49", 
+    image: "https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?w=500&h=500&fit=crop", 
+    category: "vegetables" 
+  },
+  { 
+    name: "Organic Carrots", 
+    price: "2.49", 
+    image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=500&h=500&fit=crop", 
+    category: "vegetables" 
+  },
+  { 
+    name: "Green Lettuce", 
+    price: "1.99", 
+    image: "https://images.unsplash.com/photo-1622206151226-18ca2c9ab4a1?w=500&h=500&fit=crop", 
+    category: "vegetables" 
+  },
+  { 
+    name: "Fresh Strawberries", 
+    price: "6.99", 
+    image: "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=500&h=500&fit=crop", 
+    badge: "Popular", 
+    category: "fruits" 
+  },
 ];
 
 const ProductsSection = ({ productsRef }) => {
@@ -28,20 +71,27 @@ const ProductsSection = ({ productsRef }) => {
           <h2 className="text-3xl font-bold mb-4">Featured Products</h2>
           <p className="text-muted-foreground">Discover our selection of fresh fruits and vegetables</p>
         </motion.div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6" ref={productsRef}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" ref={productsRef}>
           {products.map((product, index) => (
-            <motion.div key={index} whileHover={{ scale: 1.05, y: -10 }} transition={{ type: "spring", stiffness: 300 }}>
-              <Card className="group overflow-hidden">
+            <motion.div 
+              key={index} 
+              whileHover={{ scale: 1.05, y: -10 }} 
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <Card className="group overflow-hidden h-full">
                 <CardContent className="p-4">
-                  <div className="relative mb-4 overflow-hidden rounded-lg">
-                    {product.badge && <Badge className="absolute top-2 right-2 z-10">{product.badge}</Badge>}
+                  <div className="relative mb-4 overflow-hidden rounded-lg aspect-square">
+                    {product.badge && (
+                      <Badge className="absolute top-2 right-2 z-10">{product.badge}</Badge>
+                    )}
                     <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
                       <Image
                         src={product.image}
                         alt={product.name}
-                        width={200}
-                        height={200}
-                        className="w-full h-48 object-cover"
+                        width={500}
+                        height={500}
+                        className="w-full h-full object-cover"
+                        unoptimized
                       />
                     </motion.div>
                   </div>

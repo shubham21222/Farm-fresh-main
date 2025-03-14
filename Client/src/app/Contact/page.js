@@ -250,7 +250,7 @@ const ContactPage = () => {
             <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
               Subscribe to our newsletter for fresh updates, seasonal recipes, and exclusive offers!
             </p>
-            <form className="max-w-md mx-auto flex gap-4">
+            <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
               <input
                 type="email"
                 placeholder="Enter your email"
@@ -258,7 +258,7 @@ const ContactPage = () => {
               />
               <Button
                 type="submit"
-                className="bg-white text-green-800 hover:bg-green-100 px-8 py-3 rounded-lg font-semibold transition-all"
+                className="w-full sm:w-auto bg-white text-green-800 hover:bg-green-100 px-8 py-3 rounded-lg font-semibold transition-all"
               >
                 Subscribe
               </Button>
