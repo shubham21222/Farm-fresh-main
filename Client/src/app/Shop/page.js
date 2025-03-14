@@ -16,6 +16,7 @@ import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import CounterSection from '../components/CounterSection';
 import ProductCarousel from '../components/ProductCarousel';
+import { Suspense } from 'react';
 
 const categories = [
   { id: 'fruits', name: 'Organic Fruits', image: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3' },
@@ -72,7 +73,8 @@ const hardcodedProducts = [
   },
 ];
 
-export default function ShopPage() {
+// Create a client component for the shop content
+const ShopContent = () => {
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
   const [selectedCategory, setSelectedCategory] = useState(category || 'all');
@@ -83,8 +85,6 @@ export default function ShopPage() {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-  // const { updateCart } = useCart();
-
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -410,5 +410,18 @@ export default function ShopPage() {
         </AnimatePresence>
       </div>
     </div>
+  );
+};
+
+// Main page component
+export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen mt-16 bg-gray-50 py-12 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+      </div>
+    }>
+      <ShopContent />
+    </Suspense>
   );
 }
