@@ -21,8 +21,6 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
-// Import components
 import DashboardStats from '../components/DashboardStats';
 import SalesChart from '../components/SalesChart';
 import RecentOrders from '../components/RecentOrders';
