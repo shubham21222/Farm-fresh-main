@@ -1,11 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import TomatoImg from "../../../public/Tomato2.png";
-import { Swiper, SwiperSlide } from "swiper/react"; // Import Swiper components
-import { Autoplay, Pagination } from "swiper/modules"; // Import Swiper modules
-import EggsImg from "../../../public/eggs2.png";
-import VegetablesImg from "../../../public/Vegetables2.png";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
 
 // Import Swiper styles
 import "swiper/css";
@@ -27,10 +23,19 @@ const floatingAnimation = {
 const HeroSection = () => {
   // Array of images for the carousel
   const carouselImages = [
-    TomatoImg, // Local image
-    EggsImg,
-    VegetablesImg
-    ];
+    {
+      src: "/Tomato2.png",
+      alt: "Fresh Tomatoes"
+    },
+    {
+      src: "/eggs2.png",
+      alt: "Fresh Eggs"
+    },
+    {
+      src: "/Vegetables2.png",
+      alt: "Fresh Vegetables"
+    }
+  ];
 
   return (
     <section className="relative bg-gradient-to-b from-green-50 to-white overflow-hidden">
@@ -64,7 +69,6 @@ const HeroSection = () => {
           </motion.div>
 
           <div className="relative h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] mt-8 w-full">
-            {/* Swiper Carousel */}
             <Swiper
               style={{ height: "100%", width: "100%" }}
               modules={[Autoplay, Pagination]}
@@ -75,7 +79,7 @@ const HeroSection = () => {
               loop={true}
               className="w-full h-full"
             >
-              {carouselImages.map((src, index) => (
+              {carouselImages.map((image, index) => (
                 <SwiperSlide key={index}>
                   <motion.div
                     variants={floatingAnimation}
@@ -83,14 +87,10 @@ const HeroSection = () => {
                     animate="animate"
                     className="relative h-full w-full"
                   >
-                    <Image
-                      src={src}
-                      alt={`Fresh Produce ${index + 1}`}
-                      fill
-                      className="object-contain rounded-2xl"
-                      priority
-                      quality={90}
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 80vw, (max-width: 1024px) 60vw, 50vw"
+                    <img
+                      src={image.src}
+                      alt={image.alt}
+                      className="object-contain rounded-2xl w-full h-full"
                     />
                   </motion.div>
                 </SwiperSlide>
