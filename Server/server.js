@@ -6,6 +6,14 @@ const userRoutes = require('./routes/userRoutes');
 const farmerRoutes = require('./routes/farmerRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const productRoutes = require('./routes/productRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const marketingRoutes = require('./routes/marketingRoutes');
+const deliveryZoneRoutes = require('./routes/deliveryZoneRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const farmerBrandRoutes = require('./routes/farmerBrandRoutes');
+const brandRoutes = require('./routes/brandRoutes');
+const cartRoutes = require('./routes/cartRoutes'); // Add this line
 
 // Load environment variables
 dotenv.config();
@@ -26,6 +34,14 @@ app.use('/api/users', userRoutes);
 app.use('/api/farmer', farmerRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/marketing', marketingRoutes);
+app.use('/api/delivery-zones', deliveryZoneRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/farmer/brand', farmerBrandRoutes);
+app.use('/api/farmer/brand', brandRoutes);
+app.use('/api/cart', cartRoutes); // Add this line
 
 // Basic route
 app.get('/', (req, res) => {
@@ -42,4 +58,4 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-}); 
+});

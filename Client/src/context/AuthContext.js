@@ -12,10 +12,17 @@ export const AuthProvider = ({ children }) => {
       const currentUser = getCurrentUser();
       if (currentUser) {
         try {
+          // Set the user from localStorage first for immediate UI update
+          setUser(currentUser);
+          // Then fetch fresh data from the server
           const userProfile = await getUserProfile();
           setUser(userProfile);
         } catch (error) {
           console.error('Error fetching user profile:', error);
+          // If there's an error fetching the profile, clear the stored data
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setUser(null);
         }
       }
       setLoading(false);
@@ -25,11 +32,20 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData) => {
+    localStorage.setItem('token', userData.token);
+    localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
   };
 
   const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
+  };
+
+  const updateUser = (userData) => {
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
   };
 
   const value = {
@@ -37,6 +53,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
+    updateUser,
+    isAuthenticated: !!user,
   };
 
   return (

@@ -3,14 +3,14 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Mail, Lock, Loader2 } from 'lucide-react';
-import { loginUser } from '@/app/lib/auth';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { useAuth } from '@/app/hooks/useAuth';
+import { useDispatch } from 'react-redux';
+import { login } from '@/store/slices/authSlice';
 
 const LoginForm = ({ onClose }) => {
   const router = useRouter();
-  const { login } = useAuth();
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,44 +24,25 @@ const LoginForm = ({ onClose }) => {
     setError('');
     
     try {
-      const response = await loginUser({
-        ...formData,
-        role: 'user' // Default role for regular users
-      });
-
-      if (response.success) {
-        const userData = {
-          ...response.data.user,
-          token: response.data.token,
-          cart: { items: [] },
-          wishlist: []
-        };
-        
-        // Save token and user data to localStorage
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(userData));
-        
-        // Update auth context with user data
-        login(userData);
+      const result = await dispatch(login(formData)).unwrap();
+      
+      if (result.success) {
+        // Close modal and show success message
         onClose();
         toast.success('Logged in successfully');
         
-        // Redirect based on user role
-        if (userData.role === 'admin') {
-          router.push('/Admin/Admin-Dashboard');
-        } else if (userData.role === 'farmer') {
-          router.push('/Farmer/Farmer-Dashboard');
-        } else {
-          router.push('/my-account');
-        }
+        // Use replace instead of push to prevent back button from returning to login
+        router.replace('/');
       } else {
-        setError(response.error || 'Invalid credentials');
-        toast.error(response.error || 'Invalid credentials');
+        const errorMessage = result.message || 'Invalid credentials';
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Login failed:', error);
-      setError('An error occurred during login');
-      toast.error('An error occurred during login');
+      const errorMessage = error.message || 'An error occurred during login';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -88,33 +69,39 @@ const LoginForm = ({ onClose }) => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Email</label>
+          <label htmlFor="email" className="text-sm font-medium text-gray-700">
+            Email
+          </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="email"
+              id="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
-              required
-              className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter your email"
+              required
             />
           </div>
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">Password</label>
+          <label htmlFor="password" className="text-sm font-medium text-gray-700">
+            Password
+          </label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="password"
+              id="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
-              required
-              className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter your password"
+              required
             />
           </div>
         </div>
@@ -131,12 +118,12 @@ const LoginForm = ({ onClose }) => {
 
         <Button
           type="submit"
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-sm font-semibold transition-all flex items-center justify-center"
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-2"
           disabled={isLoading}
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Signing in...
             </>
           ) : (

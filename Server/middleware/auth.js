@@ -1,13 +1,14 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Admin = require('../models/Admin');
+const ErrorResponse = require('../utils/errorResponse');
 
-exports.auth = async (req, res, next) => {
+exports.protect = async (req, res, next) => {
   try {
     let token = req.header('Authorization');
 
     if (!token) {
-      return res.status(401).json({ message: 'No authentication token, access denied' });
+      return next(new ErrorResponse('No authentication token, access denied', 401));
     }
 
     // Remove Bearer prefix if present
@@ -24,15 +25,24 @@ exports.auth = async (req, res, next) => {
     }
 
     if (!user) {
-      return res.status(401).json({ message: 'Token is invalid' });
+      return next(new ErrorResponse('Token is invalid', 401));
     }
 
     req.user = user;
     next();
   } catch (error) {
     console.error('Error in auth middleware:', error);
-    res.status(401).json({ message: 'Token is invalid' });
+    return next(new ErrorResponse('Token is invalid', 401));
   }
+};
+
+exports.authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(new ErrorResponse(`User role ${req.user.role} is not authorized to access this route`, 403));
+    }
+    next();
+  };
 };
 
 exports.isAdmin = async (req, res, next) => {

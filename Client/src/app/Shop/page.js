@@ -2,17 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-// import { getProducts } from '../lib/products';
-// import { addToCart } from '../lib/cart';
-// import { useCart } from '../hooks/useCart';
-import { useAuth } from '../hooks/useAuth';
+import { getProducts, getProductsByCategory } from '../lib/api/products';
+import { useSelector, useDispatch } from 'react-redux';
+import { addToCart } from '@/store/slices/cartSlice'; // Import action
 import { useWishlist } from '../hooks/useWishlist';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Heart, Star, Filter, Search, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-// import AddProductForm from '../components/AddProductForm';
 import { motion, AnimatePresence } from 'framer-motion';
 import CounterSection from '../components/CounterSection';
 import ProductCarousel from '../components/ProductCarousel';
@@ -25,70 +23,24 @@ const categories = [
   { id: 'grains', name: 'Organic Grains', image: 'https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3' },
 ];
 
-// Hardcoded products
-const hardcodedProducts = [
-  {
-    _id: '1',
-    name: 'Fresh Organic Apples',
-    description: 'Sweet and juicy organic apples from local farms',
-    price: 4.99,
-    category: 'fruits',
-    image: 'https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    rating: 4.8,
-    reviews: 128,
-    stock: 50,
-  },
-  {
-    _id: '2',
-    name: 'Organic Carrots',
-    description: 'Fresh organic carrots packed with nutrients',
-    price: 3.99,
-    category: 'vegetables',
-    image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    rating: 4.6,
-    reviews: 89,
-    stock: 75,
-  },
-  {
-    _id: '3',
-    name: 'Organic Milk',
-    description: 'Farm-fresh organic milk from grass-fed cows',
-    price: 5.99,
-    category: 'dairy',
-    image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    rating: 4.7,
-    reviews: 156,
-    stock: 30,
-  },
-  {
-    _id: '4',
-    name: 'Organic Brown Rice',
-    description: 'Whole grain organic brown rice',
-    price: 8.99,
-    category: 'grains',
-    image: 'https://images.unsplash.com/photo-1517673400267-0251440c45dc?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-    rating: 4.9,
-    reviews: 234,
-    stock: 100,
-  },
-];
-
-// Create a client component for the shop content
 const ShopContent = () => {
+  const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
   const [selectedCategory, setSelectedCategory] = useState(category || 'all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('featured');
-  const [products] = useState(hardcodedProducts);
-  const [filteredProducts, setFilteredProducts] = useState(hardcodedProducts);
-  const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const { user, token, isAuthenticated } = useSelector((state) => state.auth);
+  const { loading: cartLoading, error: cartError } = useSelector((state) => state.cart);
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const containerRef = useRef(null);
 
   useEffect(() => {
-    // Add scroll reveal animation
+    console.log('Redux auth state:', { user, token, isAuthenticated });
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -107,50 +59,33 @@ const ShopContent = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Comment out the API fetch effect
-  /*
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        console.log('Fetching products...');
-        const data = await getProducts();
-        console.log('Products fetched:', data);
+        setLoading(true);
+        const data = selectedCategory === 'all' 
+          ? await getProducts() 
+          : await getProductsByCategory(selectedCategory);
         setProducts(data);
         setFilteredProducts(data);
       } catch (error) {
         console.error('Error fetching products:', error);
-        console.error('Error details:', {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        });
-        toast.error('Failed to load products. Please try again later.');
+        toast.error('Failed to load products.');
       } finally {
         setLoading(false);
       }
     };
-
     fetchProducts();
-  }, []);
-  */
+  }, [selectedCategory]);
 
   useEffect(() => {
     let filtered = [...products];
-
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(product => product.category === selectedCategory);
-    }
-
-    // Filter by search query
     if (searchQuery) {
       filtered = filtered.filter(product =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-
-    // Sort products
     switch (sortBy) {
       case 'price-low':
         filtered.sort((a, b) => a.price - b.price);
@@ -162,37 +97,29 @@ const ShopContent = () => {
         filtered.sort((a, b) => b.rating - a.rating);
         break;
       default:
-        // Keep original order for 'featured'
         break;
     }
-
     setFilteredProducts(filtered);
-  }, [selectedCategory, searchQuery, sortBy, products]);
+  }, [searchQuery, sortBy, products]);
 
   const handleAddToCart = async (product) => {
-    if (!user) {
+    if (!isAuthenticated || !token) {
+      console.log('Authentication failed:', { isAuthenticated, token });
       toast.error('Please login to add items to cart');
       return;
     }
 
-    // Comment out the API call
-    /*
     try {
-      const response = await addToCart(product._id, 1);
-      updateCart(response);
+      await dispatch(addToCart({ productId: product._id, quantity: 1 })).unwrap();
       toast.success('Added to cart successfully!');
     } catch (error) {
       console.error('Error adding to cart:', error);
-      toast.error(error.response?.data?.message || 'Failed to add item to cart');
+      toast.error(error.message || 'Failed to add item to cart');
     }
-    */
-    
-    // Just show a success message for now
-    toast.success('Added to cart successfully!');
   };
 
   const handleAddToWishlist = async (product) => {
-    if (!user) {
+    if (!isAuthenticated) {
       toast.error('Please login to add items to wishlist');
       return;
     }
@@ -222,7 +149,6 @@ const ShopContent = () => {
   return (
     <div className="min-h-screen mt-16 bg-gray-50 py-8 sm:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" ref={containerRef}>
-        {/* Hero Section with enhanced animation */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -237,10 +163,7 @@ const ShopContent = () => {
           <p className="text-lg sm:text-xl text-gray-600">Discover fresh, organic products from local farmers</p>
         </motion.div>
 
-        {/* Add ProductCarousel component */}
         <ProductCarousel />
-
-        {/* Categories with staggered animation */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -256,9 +179,7 @@ const ShopContent = () => {
             >
               <Link
                 href={`/Shop?category=${cat.id}`}
-                className={`relative h-32 sm:h-48 rounded-lg overflow-hidden group ${
-                  selectedCategory === cat.id ? 'ring-2 ring-green-500' : ''
-                }`}
+                className={`relative h-32 sm:h-48 rounded-lg overflow-hidden group ${selectedCategory === cat.id ? 'ring-2 ring-green-500' : ''}`}
               >
                 <Image
                   src={cat.image}
@@ -276,10 +197,7 @@ const ShopContent = () => {
           ))}
         </motion.div>
 
-        {/* Add CounterSection component */}
         <CounterSection />
-
-        {/* Filters and Search with enhanced styling */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -321,7 +239,6 @@ const ShopContent = () => {
           </div>
         </motion.div>
 
-        {/* Products Grid with enhanced animations */}
         <AnimatePresence>
           <motion.div 
             layout
@@ -347,9 +264,7 @@ const ShopContent = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <button
                     onClick={() => handleAddToWishlist(product)}
-                    className={`absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 ${
-                      isInWishlist(product._id) ? 'text-red-500' : 'text-gray-600'
-                    }`}
+                    className={`absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-all duration-300 transform hover:scale-110 ${isInWishlist(product._id) ? 'text-red-500' : 'text-gray-600'}`}
                   >
                     <Heart className={`h-5 w-5 ${isInWishlist(product._id) ? 'fill-current' : ''}`} />
                   </button>
@@ -366,15 +281,11 @@ const ShopContent = () => {
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`h-3 w-3 sm:h-4 sm:w-4 ${
-                            i < Math.floor(product.rating)
-                              ? 'text-yellow-400 fill-current'
-                              : 'text-gray-300'
-                          }`}
+                          className={`h-3 w-3 sm:h-4 sm:w-4 ${i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
                         />
                       ))}
                     </div>
-                    <span className="text-xs sm:text-sm text-gray-600 ml-2">({product.reviews})</span>
+                    <span className="text-xs sm:text-sm text-gray-600 ml-2">({product.reviews || 0})</span>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
                     <span className="text-lg sm:text-xl font-bold text-green-600">
@@ -382,10 +293,11 @@ const ShopContent = () => {
                     </span>
                     <Button
                       onClick={() => handleAddToCart(product)}
+                      disabled={cartLoading}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-all duration-300 transform hover:scale-105"
                     >
                       <ShoppingCart className="h-4 w-4" />
-                      Add to Cart
+                      {cartLoading ? 'Adding...' : 'Add to Cart'}
                     </Button>
                   </div>
                 </div>
@@ -394,7 +306,6 @@ const ShopContent = () => {
           </motion.div>
         </AnimatePresence>
 
-        {/* Empty State with animation */}
         <AnimatePresence>
           {filteredProducts.length === 0 && (
             <motion.div 
@@ -413,7 +324,6 @@ const ShopContent = () => {
   );
 };
 
-// Main page component
 export default function ShopPage() {
   return (
     <Suspense fallback={

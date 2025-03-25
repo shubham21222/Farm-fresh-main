@@ -31,22 +31,22 @@ const LoginPage = () => {
       });
 
       // Check if we have a response with the required data
-      if (response && response._id) {
+      if (response && response.data && response.data.user) {
         const userData = {
-          id: response._id,
-          name: response.name,
-          email: response.email,
-          role: response.role,
-          isVerified: response.isVerified,
-          token: response.token
+          id: response.data.user._id,
+          name: response.data.user.name,
+          email: response.data.user.email,
+          role: response.data.user.role,
+          isVerified: response.data.user.isVerified,
+          token: response.data.token
         };
         
         // Set cookies for middleware authentication
-        Cookies.set('token', response.token, { path: '/' });
-        Cookies.set('userRole', response.role, { path: '/' });
+        Cookies.set('token', response.data.token, { path: '/' });
+        Cookies.set('userRole', response.data.user.role, { path: '/' });
         
         // Save user data to localStorage for client-side use
-        localStorage.setItem('token', response.token);
+        localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(userData));
         
         // Update auth context with user data
@@ -54,7 +54,7 @@ const LoginPage = () => {
         toast.success('Logged in successfully');
         
         // Check verification status and route accordingly
-        if (response.isVerified) {
+        if (response.data.user.isVerified) {
           router.push('/Farmer/Farmer-Dashboard');
         } else {
           router.push('/Farmer/pending-verification');
@@ -135,7 +135,7 @@ const LoginPage = () => {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
-                Don&apos;t have a farmer account?{' '}
+                Don't have a farmer account?{' '}
                 <a href="/Farmer/register" className="text-green-600 hover:text-green-700 font-medium">
                   Register here
                 </a>
@@ -148,4 +148,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage; 
+export default LoginPage;

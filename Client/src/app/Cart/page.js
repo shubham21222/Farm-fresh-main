@@ -1,47 +1,51 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Trash2, Plus, Minus } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { useRouter } from "next/navigation";
+import { fetchCart, removeFromCart, updateQuantity, clearCart } from "@/store/slices/cartSlice";
+import { createOrder } from "@/store/slices/orderSlice";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
 const CartPage = () => {
-  const [cartItems, setCartItems] = useState([]);
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const { items, total, loading } = useSelector((state) => state.cart);
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    const items = JSON.parse(localStorage.getItem("cartItems") || "[]");
-    setCartItems(items);
-  }, []);
+    if (isAuthenticated) {
+      dispatch(fetchCart());
+    }
+  }, [dispatch, isAuthenticated]);
 
-  const updateCart = (updatedItems) => {
-    localStorage.setItem("cartItems", JSON.stringify(updatedItems));
-    setCartItems(updatedItems);
-    window.dispatchEvent(new Event("cartUpdated"));
+  const handleQuantityChange = (id, quantity) => {
+    if (quantity < 1) return;
+    dispatch(updateQuantity({ id, quantity }));
   };
 
-  const removeItem = (itemName) => {
-    const updatedItems = cartItems.filter((item) => item.name !== itemName);
-    updateCart(updatedItems);
+  const handleRemoveItem = (id) => {
+    dispatch(removeFromCart(id));
   };
 
-  const updateQuantity = (itemName, change) => {
-    const updatedItems = cartItems.map((item) => {
-      if (item.name === itemName) {
-        const newQuantity = Math.max(1, item.quantity + change);
-        return { ...item, quantity: newQuantity };
-      }
-      return item;
-    });
-    updateCart(updatedItems);
-  };
+  const handleCheckout = async () => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
 
-  const calculateTotal = () => {
-    return cartItems
-      .reduce((total, item) => total + parseFloat(item.price) * item.quantity, 0)
-      .toFixed(2);
+    try {
+      await dispatch(createOrder({ items, total })).unwrap();
+      dispatch(clearCart());
+      router.push('/profile');
+    } catch (error) {
+      console.error('Failed to create order:', error);
+    }
   };
 
   return (
@@ -58,7 +62,11 @@ const CartPage = () => {
             Your Cart
           </motion.h1>
 
-          {cartItems.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mx-auto"></div>
+            </div>
+          ) : items.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -72,9 +80,9 @@ const CartPage = () => {
             </motion.div>
           ) : (
             <div className="space-y-6">
-              {cartItems.map((item, index) => (
+              {items.map((item, index) => (
                 <motion.div
-                  key={item.name}
+                  key={item._id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
@@ -82,23 +90,23 @@ const CartPage = () => {
                 >
                   <div className="flex items-center">
                     <Image
-                      src={item.image}
-                      alt={item.name}
+                      src={item.product?.image || item.image} // Adjust based on backend response
+                      alt={item.product?.name || item.name}
                       width={100}
                       height={100}
                       className="rounded-md object-cover"
                     />
                     <div className="ml-4">
-                      <h3 className="text-lg font-semibold">{item.name}</h3>
+                      <h3 className="text-lg font-semibold">{item.product?.name || item.name}</h3>
                       <p className="text-gray-600">
                         ${item.price} x {item.quantity} = $
-                        {(parseFloat(item.price) * item.quantity).toFixed(2)}
+                        {(item.price * item.quantity).toFixed(2)}
                       </p>
                       <div className="flex items-center mt-2 space-x-2">
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => updateQuantity(item.name, -1)}
+                          onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
                         >
                           <Minus className="h-4 w-4" />
                         </Button>
@@ -106,7 +114,7 @@ const CartPage = () => {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => updateQuantity(item.name, 1)}
+                          onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
                         >
                           <Plus className="h-4 w-4" />
                         </Button>
@@ -116,7 +124,7 @@ const CartPage = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => removeItem(item.name)}
+                    onClick={() => handleRemoveItem(item._id)}
                     className="text-red-500 hover:text-red-700"
                   >
                     <Trash2 className="h-5 w-5" />
@@ -131,15 +139,19 @@ const CartPage = () => {
               >
                 <span className="text-xl font-bold">Total:</span>
                 <span className="text-2xl font-bold text-green-600">
-                  ${calculateTotal()}
+                  ${total.toFixed(2)}
                 </span>
               </motion.div>
               <div className="flex justify-end space-x-4 mt-4">
                 <Button variant="outline" asChild>
                   <a href="/Shop">Continue Shopping</a>
                 </Button>
-                <Button className="bg-green-600 hover:bg-green-700">
-                  Proceed to Checkout
+                <Button 
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={handleCheckout}
+                  disabled={loading}
+                >
+                  {loading ? 'Processing...' : 'Proceed to Checkout'}
                 </Button>
               </div>
             </div>

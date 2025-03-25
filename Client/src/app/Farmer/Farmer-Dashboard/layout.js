@@ -11,7 +11,8 @@ import {
   Menu,
   X,
   ChevronRight,
-  Leaf
+  Leaf,
+  Palette
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -35,6 +36,7 @@ const DashboardLayout = ({ children }) => {
     { icon: ShoppingCart, label: 'Orders', href: '/Farmer/Farmer-Dashboard/orders' },
     { icon: TrendingUp, label: 'Analytics', href: '/Farmer/Farmer-Dashboard/analytics' },
     { icon: MessageSquare, label: 'Messages', href: '/Farmer/Farmer-Dashboard/messages' },
+    { icon: Palette, label: 'Brand', href: '/Farmer/Farmer-Dashboard/brand' },
     { icon: Settings, label: 'Settings', href: '/Farmer/Farmer-Dashboard/settings' },
   ];
 

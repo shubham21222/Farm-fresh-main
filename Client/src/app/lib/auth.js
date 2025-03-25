@@ -1,6 +1,8 @@
 "use client";
 
 import api from './api';
+import NextAuth from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
 
 // Register a new user
 export const registerUser = async (userData) => {
@@ -26,14 +28,31 @@ export const registerFarmer = async (farmerData) => {
 export const loginUser = async (credentials) => {
   try {
     const endpoint = credentials.role === 'admin'
-      ? '/api/admin/login'    // Updated admin login endpoint
-      : '/api/users/login';   // Regular user login endpoint
+      ? '/api/admin/login'
+      : '/api/users/login';   // Use the same endpoint for both users and farmers
 
     const response = await api.post(endpoint, credentials);
-    return response.data;
+    
+    if (response.data && response.data.data && response.data.data.token) {
+      return {
+        success: true,
+        data: {
+          user: response.data.data.user,
+          token: response.data.data.token
+        }
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Invalid response from server'
+      };
+    }
   } catch (error) {
     console.error('Login error:', error);
-    throw error;
+    return {
+      success: false,
+      error: error.response?.data?.message || 'Login failed'
+    };
   }
 };
 
@@ -129,4 +148,78 @@ export const hasRole = (requiredRole) => {
 
 export const isAdmin = () => hasRole('admin');
 export const isFarmer = () => hasRole('farmer');
-export const isCustomer = () => hasRole('user'); 
+export const isCustomer = () => hasRole('user');
+
+export const authOptions = {
+  providers: [
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(credentials),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            // Store token and user data in localStorage
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('token', data.data.token);
+              localStorage.setItem('user', JSON.stringify(data.data.user));
+            }
+            
+            // Return user object with token
+            return {
+              id: data.data.user._id,
+              name: data.data.user.name,
+              email: data.data.user.email,
+              role: data.data.user.role,
+              token: data.data.token
+            };
+          }
+          return null;
+        } catch (error) {
+          console.error('Auth error:', error);
+          return null;
+        }
+      }
+    })
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+        token.token = user.token;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.token = token.token;
+      }
+      return session;
+    }
+  },
+  pages: {
+    signIn: '/Farmer/login',
+    error: '/Farmer/login',
+  },
+  session: {
+    strategy: 'jwt',
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+};
+
+export default NextAuth(authOptions); 

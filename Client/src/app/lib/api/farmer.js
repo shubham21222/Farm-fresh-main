@@ -57,4 +57,29 @@ export const getFarmerProfile = async () => {
 export const updateFarmerProfile = async (profileData) => {
   const response = await api.put('/api/users/profile', profileData);
   return response.data;
+};
+
+// Get farmer's brand
+export const getFarmerBrand = async () => {
+  const response = await api.get('/api/farmer/brand');
+  return response.data;
+};
+
+// Update farmer's brand
+export const updateFarmerBrand = async (brandData) => {
+  const response = await api.put('/api/farmer/brand', brandData);
+  return response.data;
+};
+
+// Upload brand image
+export const uploadBrandImage = async (file, type) => {
+  const formData = new FormData();
+  formData.append(type, file);
+  
+  const response = await api.put('/api/farmer/brand', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return response.data;
 }; 

@@ -6,8 +6,8 @@ import { ShoppingCart, Heart, Search, Leaf, X, Menu, User, LogOut, Package, Sett
 import { Button } from "@/components/ui/button";
 import { useRouter, usePathname } from "next/navigation";
 import AuthModal from './auth/AuthModal';
-import { useAuth } from '../hooks/useAuth';
-import { logoutUser } from '../lib/auth';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '@/store/slices/authSlice';
 import toast from 'react-hot-toast';
 import { useCart } from '../hooks/useCart';
 import { useWishlist } from '../hooks/useWishlist';
@@ -17,7 +17,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 const Header = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const dispatch = useDispatch();
+  const { user, isAuthenticated, role } = useSelector((state) => state.auth);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -73,9 +74,10 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await dispatch(logout()).unwrap();
       setIsProfileOpen(false);
       toast.success('Logged out successfully');
+      router.push('/');
     } catch (error) {
       toast.error('Failed to logout');
     }
@@ -235,70 +237,86 @@ const Header = () => {
       </header>
 
       {/* Mobile Navigation */}
-      <div
-        className={`md:hidden transition-all duration-300 ease-in-out ${
-          isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-        } overflow-hidden bg-white`}
-      >
-        <div className="px-4 py-3 space-y-4">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="w-full px-4 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          </div>
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+            className="md:hidden fixed inset-0 z-40 bg-white"
+          >
+            <div className="flex flex-col h-full">
+              {/* Mobile Header */}
+              <div className="flex items-center justify-between p-4 border-b">
+                <Link href="/" className="flex items-center space-x-2" onClick={() => setIsMenuOpen(false)}>
+                  <div className="relative w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <Leaf className="w-6 h-6 text-green-600" />
+                  </div>
+                  <span className="text-2xl font-bold text-green-600">FarmFresh</span>
+                </Link>
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  className="p-2 rounded-md hover:bg-gray-100"
+                >
+                  <X className="h-6 w-6 text-gray-600" />
+                </button>
+              </div>
 
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.path}
-              className={`block text-sm font-medium ${
-                pathname === item.path ? 'text-green-600' : 'text-gray-600'
-              }`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {item.name}
-            </Link>
-          ))}
+              {/* Mobile Navigation Links */}
+              <nav className="flex-1 overflow-y-auto p-4">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.path}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`block py-3 text-base font-medium ${
+                      pathname === item.path
+                        ? 'text-green-600'
+                        : 'text-gray-600 hover:text-green-600'
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </nav>
 
-          <div className="flex items-center justify-between pt-4 border-t">
-            <Link href="/Wishlist" className="relative">
-              <Heart className="h-6 w-6 text-gray-600" />
-              {wishlistCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
-
-            <Link href="/Cart" className="relative">
-              <ShoppingCart className="h-6 w-6 text-gray-600" />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-
-            <div className="flex items-center space-x-2">
-              <User className="h-6 w-6 text-gray-600" />
-              {user && (
-                <span className="text-sm text-gray-600">{user.name}</span>
-              )}
-              <button
-                onClick={() => {
-                  setIsAuthModalOpen(true);
-                  setIsMenuOpen(false);
-                }}
-                className="flex items-center space-x-1 text-sm text-gray-600"
-              >
-              </button>
+              {/* User Actions */}
+              <div className="pt-4 border-t">
+                {user ? (
+                  <div className="space-y-2">
+                    <Link
+                      href="/my-account"
+                      className="flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-50"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <User className="h-5 w-5 mr-3" />
+                      My Account
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center w-full px-4 py-3 rounded-lg text-base font-medium text-red-600 hover:bg-red-50"
+                    >
+                      <LogOut className="h-5 w-5 mr-3" />
+                      Logout
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setIsAuthModalOpen(true);
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                  >
+                    Login / Register
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Auth Modal */}
       <AuthModal
