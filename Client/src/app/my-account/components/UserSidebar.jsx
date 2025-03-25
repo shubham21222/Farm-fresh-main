@@ -1,7 +1,7 @@
 // components/UserSidebar.jsx
 import React from 'react';
 import { Home, Package, Tag, Settings, LogOut } from 'lucide-react';
-import { useAuth } from '@/app/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 

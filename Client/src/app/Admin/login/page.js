@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { useAuth } from '@/app/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import Image from 'next/image';
 import { adminApi } from '@/app/lib/adminApi';
 

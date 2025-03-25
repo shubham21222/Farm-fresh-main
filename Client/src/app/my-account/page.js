@@ -1,23 +1,27 @@
-// MyAccountPage.jsx
 "use client";
-import React, { useState } from "react";
-import UserSidebar from "./components/UserSidebar";
-import DashboardTab from "./components/DashboardTab";
-import OrdersTab from "./components/OrdersTab";
-import AddressTab from "./components/AddressTab";
-import SettingsTab from "./components/SettingsTab";
-import OrderDetailsModal from "./components/OrderDetailsModal";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import { useAuth } from '../hooks/useAuth';
-import EmailVerification from '../components/EmailVerification';
-import { User, Package, MapPin, Settings } from 'lucide-react';
-// import './MyAccountPage.css';
 
-const MyAccountPage = () => {
+import React, { useState } from "react";
+import UserSidebar from "./components/UserSidebar"; // Updated path
+import DashboardTab from "./components/DashboardTab"; // Updated path
+import OrdersTab from "./components/OrdersTab"; // Updated path
+import AddressTab from "./components/AddressTab"; // Updated path
+import SettingsTab from "./components/SettingsTab"; // Updated path
+import OrderDetailsModal from "./components/OrderDetailsModal"; // Updated path
+import Header from "@/app/components/Header"; // Updated path
+import Footer from "@/app/components/Footer"; // Updated path
+import { useAuth } from "@/context/AuthContext";
+import EmailVerification from "../components/EmailVerification";
+import { User, Package, MapPin, Settings } from 'lucide-react';
+
+export default function MyAccountPage() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [openDetail, setOpenDetail] = useState(false);
   const { user } = useAuth();
+
+  // Guard against server-side execution
+  if (typeof window === "undefined") {
+    return null; // Render nothing on the server
+  }
 
   const tabContent = {
     dashboard: <DashboardTab />,
@@ -105,6 +109,7 @@ const MyAccountPage = () => {
       <Footer />
     </div>
   );
-};
+}
 
-export default MyAccountPage;
+// Optional: Disable prerendering for this page
+export const dynamic = 'force-dynamic';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShoppingBag, Package, Heart, MapPin, Clock, TrendingUp } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 
 const DashboardTab = () => {
   const { user } = useAuth();

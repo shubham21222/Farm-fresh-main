@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { loginUser } from '@/app/lib/auth';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { useAuth } from '@/app/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import Cookies from 'js-cookie';
 
 const LoginPage = () => {

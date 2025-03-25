@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../hooks/useCart';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Truck, Package, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';

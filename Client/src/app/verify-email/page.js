@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { verifyEmail } from '../lib/auth';
+import { verifyEmail } from '@/app/lib/auth'; // Updated path
 import toast from 'react-hot-toast';
 
-// Create a client component for the verification content
+// Client component for verification content
 const VerifyEmailContent = () => {
   const [verifying, setVerifying] = useState(true);
   const searchParams = useSearchParams();
@@ -13,6 +13,9 @@ const VerifyEmailContent = () => {
   const token = searchParams.get('token');
 
   useEffect(() => {
+    // Guard against server-side execution
+    if (typeof window === "undefined") return;
+
     const verify = async () => {
       if (!token) {
         toast.error('Invalid verification link');
@@ -30,7 +33,7 @@ const VerifyEmailContent = () => {
           localStorage.setItem('user', JSON.stringify(response.user));
           
           toast.success('Email verified successfully! You are now logged in.');
-          router.push('/my-account'); // Redirect to user dashboard or account page
+          router.push('/my-account');
         } else {
           toast.error('Verification successful but login failed. Please log in manually.');
           router.push('/login');
@@ -63,6 +66,11 @@ const VerifyEmailContent = () => {
 
 // Main page component
 export default function VerifyEmail() {
+  // Guard against server-side rendering
+  if (typeof window === "undefined") {
+    return null; // Render nothing on the server
+  }
+
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -77,4 +85,7 @@ export default function VerifyEmail() {
       <VerifyEmailContent />
     </Suspense>
   );
-} 
+}
+
+// Disable prerendering for this page
+export const dynamic = 'force-dynamic';

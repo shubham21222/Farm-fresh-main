@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Mail, Lock, User, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { registerUser, sendVerificationEmail } from '@/app/lib/auth';
-import { useAuth } from '@/app/hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
 
 const SignupForm = ({ onClose }) => {

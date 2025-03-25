@@ -1217,17 +1217,6 @@ video {
 .gap-8 {
   gap: 2rem;
 }
-.gap-x-6 {
-  column-gap: 1.5rem;
-}
-.gap-y-10 {
-  row-gap: 2.5rem;
-}
-.-space-y-px > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-y-reverse: 0;
-  margin-top: calc(-1px * calc(1 - var(--tw-space-y-reverse)));
-  margin-bottom: calc(-1px * var(--tw-space-y-reverse));
-}
 .space-x-1 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 0;
   margin-right: calc(0.25rem * var(--tw-space-x-reverse));
@@ -1339,26 +1328,15 @@ video {
 .rounded-md {
   border-radius: calc(var(--radius) - 2px);
 }
-.rounded-none {
-  border-radius: 0px;
-}
 .rounded-sm {
   border-radius: calc(var(--radius) - 4px);
 }
 .rounded-xl {
   border-radius: 0.75rem;
 }
-.rounded-b-md {
-  border-bottom-right-radius: calc(var(--radius) - 2px);
-  border-bottom-left-radius: calc(var(--radius) - 2px);
-}
 .rounded-t-lg {
   border-top-left-radius: var(--radius);
   border-top-right-radius: var(--radius);
-}
-.rounded-t-md {
-  border-top-left-radius: calc(var(--radius) - 2px);
-  border-top-right-radius: calc(var(--radius) - 2px);
 }
 .border {
   border-width: 1px;
@@ -1742,9 +1720,6 @@ video {
 .object-cover {
   object-fit: cover;
 }
-.object-center {
-  object-position: center;
-}
 .p-1 {
   padding: 0.25rem;
 }
@@ -2124,10 +2099,6 @@ video {
 .underline-offset-4 {
   text-underline-offset: 4px;
 }
-.placeholder-gray-500::placeholder {
-  --tw-placeholder-opacity: 1;
-  color: rgb(107 114 128 / var(--tw-placeholder-opacity, 1));
-}
 .opacity-0 {
   opacity: 0;
 }
@@ -2473,11 +2444,6 @@ video {
   background-color: rgb(21 128 61 / var(--tw-bg-opacity, 1));
 }
 
-.hover\:bg-indigo-700:hover {
-  --tw-bg-opacity: 1;
-  background-color: rgb(67 56 202 / var(--tw-bg-opacity, 1));
-}
-
 .hover\:bg-primary\/80:hover {
   background-color: hsl(var(--primary) / 0.8);
 }
@@ -2644,10 +2610,6 @@ video {
 .hover\:file\:bg-indigo-100::file-selector-button:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(224 231 255 / var(--tw-bg-opacity, 1));
-}
-
-.focus\:z-10:focus {
-  z-index: 10;
 }
 
 .focus\:border-green-500:focus {
@@ -2834,10 +2796,6 @@ video {
 
 .group:hover .group-hover\:opacity-100 {
   opacity: 1;
-}
-
-.group:hover .group-hover\:opacity-75 {
-  opacity: 0.75;
 }
 
 .peer:disabled ~ .peer-disabled\:cursor-not-allowed {

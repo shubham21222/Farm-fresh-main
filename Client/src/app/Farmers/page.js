@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import Header from '@/app/components/Header'; // Updated path
+import Footer from '@/app/components/Footer'; // Updated path
 import {
   Dialog,
   DialogContent,
@@ -248,6 +248,8 @@ const FarmerLoginHandler = () => {
   const router = useRouter();
 
   useEffect(() => {
+    if (typeof window === "undefined") return; // Prevent server-side execution
+
     const user = JSON.parse(localStorage.getItem('user'));
     const token = localStorage.getItem('token');
 
@@ -264,12 +266,14 @@ const FarmerLoginHandler = () => {
 };
 
 // Farmers Page Component
-const FarmerPage = () => {
+export default function FarmerPage() {
   const [farmers, setFarmers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") return; // Prevent server-side execution
+
     const fetchFarmers = async () => {
       try {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/farmer/all`);
@@ -398,6 +402,7 @@ const FarmerPage = () => {
       <Footer />
     </>
   );
-};
+}
 
-export default FarmerPage;
+// Optional: Disable prerendering for this page
+export const dynamic = 'force-dynamic';

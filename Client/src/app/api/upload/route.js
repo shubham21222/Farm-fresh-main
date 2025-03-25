@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { v2 as cloudinary } from 'cloudinary';
+import { authOptions } from '@/app/lib/auth';
 
 // Configure Cloudinary
 cloudinary.config({

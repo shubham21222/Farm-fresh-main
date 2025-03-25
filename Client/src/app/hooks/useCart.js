@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getCart } from '../lib/cart';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/context/AuthContext';
 
 export const useCart = () => {
   const [cart, setCart] = useState(null);

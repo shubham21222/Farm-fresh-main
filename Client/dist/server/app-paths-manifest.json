@@ -1,6 +1,6 @@
 {
-  "/Farmers/page": "app/Farmers/page.js",
-  "/Farmers/[id]/page": "app/Farmers/[id]/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
-  "/Shop/page": "app/Shop/page.js"
+  "/my-account/page": "app/my-account/page.js"
 }

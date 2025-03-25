@@ -1,6 +1,8 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { getCart } from '../services/cartService';
-import { useAuth } from './AuthContext';
+"use client";
+
+import { createContext, useState, useContext, useEffect } from 'react';
+import { getCart } from '@/app/lib/cart';
+import { useAuth } from '@/context/AuthContext';
 
 const CartContext = createContext(null);
 
