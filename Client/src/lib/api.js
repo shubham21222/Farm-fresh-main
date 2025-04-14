@@ -1,8 +1,13 @@
 import axios from 'axios';
 
-// Create axios instance with base URL
+// Dynamically set base URL based on environment
+const baseURL =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:5000' // during local dev
+    : '/api'; // in production, proxy through NGINX
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -17,9 +22,7 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Add a response interceptor to handle errors
@@ -29,10 +32,12 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Handle unauthorized access
       localStorage.removeItem('token');
-      window.location.href = '/';
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
     }
     return Promise.reject(error);
   }
 );
 
-export default api; 
+export default api;
