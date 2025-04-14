@@ -67,9 +67,4 @@ const sendEmail = async (to, template, data = {}) => {
   }
 };
 
-// Test email (optional, remove after confirmation)
-sendEmail('test@example.com', 'verification', 'test-token')
-  .then(() => console.log('Test email sent successfully'))
-  .catch(err => console.error('Test email failed:', err));
-
 module.exports = { sendEmail };
