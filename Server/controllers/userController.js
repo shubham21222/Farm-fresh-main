@@ -103,64 +103,64 @@
   // @desc    Login user
   // @route   POST /api/users/login
   // @access  Public
-// In userController.js
-const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+  const loginUser = async (req, res) => {
+    try {
+      const { email, password } = req.body;
 
-    // Validate input
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide both email and password'
-      });
-    }
-
-    // Find user by email
-    const user = await User.findOne({ email }).select('+password'); // Include password field
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      });
-    }
-
-    // Check password match
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      });
-    }
-
-    // Generate token
-    const token = generateToken(user._id);
-
-    // Send response
-    res.json({
-      success: true,
-      data: {
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          phone: user.phone,
-          billingAddress: user.billingAddress,
-          isVerified: user.isVerified
-        },
-        token
+      // Validate input
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please provide both email and password'
+        });
       }
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-};
+
+      // Find user by email
+      const user = await User.findOne({ email }).select('+password'); // Include password field
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid credentials'
+        });
+      }
+
+      // Check password match
+      const isMatch = await user.matchPassword(password);
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid credentials'
+        });
+      }
+
+      // Generate token
+      const token = generateToken(user._id);
+
+      // Send response
+      res.json({
+        success: true,
+        data: {
+          user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            phone: user.phone,
+            billingAddress: user.billingAddress,
+            isVerified: user.isVerified
+          },
+          token
+        }
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error'
+      });
+    }
+  };
+
   // @desc    Get user profile
   // @route   GET /api/users/profile
   // @access  Private
@@ -443,18 +443,442 @@ const loginUser = async (req, res) => {
     }
   };
 
+  // @desc    Guest checkout
+  // @route   POST /api/users/guest-checkout
+  // @access  Public
+  const guestCheckout = async (req, res) => {
+    try {
+      const { name, email, phone, billingAddress } = req.body;
+
+      // Create temporary guest user
+      const guestUser = await User.create({
+        name,
+        email,
+        phone,
+        billingAddress,
+        role: 'guest',
+        isVerified: true // Skip verification for guest users
+      });
+
+      // Generate temporary token
+      const token = generateToken(guestUser._id);
+
+      res.status(201).json({
+        success: true,
+        data: {
+          user: {
+            _id: guestUser._id,
+            name: guestUser.name,
+            email: guestUser.email,
+            role: guestUser.role
+          },
+          token
+        }
+      });
+    } catch (error) {
+      res.status(400).json({ success: false, message: error.message });
+    }
+  };
+
+  // @desc    Update notification preferences
+  // @route   PUT /api/users/notifications
+  // @access  Private
+  const updateNotificationPreferences = async (req, res) => {
+    try {
+      const { email, sms, marketing, orderUpdates } = req.body;
+      const user = await User.findById(req.user._id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      user.notificationPreferences = {
+        email: email !== undefined ? email : user.notificationPreferences.email,
+        sms: sms !== undefined ? sms : user.notificationPreferences.sms,
+        marketing: marketing !== undefined ? marketing : user.notificationPreferences.marketing,
+        orderUpdates: orderUpdates !== undefined ? orderUpdates : user.notificationPreferences.orderUpdates
+      };
+
+      await user.save();
+
+      res.json({ success: true, data: user.notificationPreferences });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
+
+  // @desc    Get loyalty program info
+  // @route   GET /api/users/loyalty
+  // @access  Private
+  const getLoyaltyInfo = async (req, res) => {
+    try {
+      const user = await User.findById(req.user._id);
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          points: user.loyaltyPoints,
+          tier: user.loyaltyTier,
+          nextTier: getNextTier(user.loyaltyPoints),
+          pointsToNextTier: getPointsToNextTier(user.loyaltyPoints)
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
+
+  // Helper function to get next loyalty tier
+  const getNextTier = (points) => {
+    if (points < 1000) return 'silver';
+    if (points < 5000) return 'gold';
+    if (points < 10000) return 'platinum';
+    return null;
+  };
+
+  // Helper function to get points needed for next tier
+  const getPointsToNextTier = (points) => {
+    if (points < 1000) return 1000 - points;
+    if (points < 5000) return 5000 - points;
+    if (points < 10000) return 10000 - points;
+    return 0;
+  };
+
+  // @desc    Add loyalty points
+  // @route   POST /api/users/loyalty/add-points
+  // @access  Private
+  const addLoyaltyPoints = async (req, res) => {
+    try {
+      const { points, reason } = req.body;
+      const user = await User.findById(req.user._id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      user.loyaltyPoints += points;
+      user.updateLoyaltyTier();
+      await user.save();
+
+      // Log points addition
+      // TODO: Implement points history logging
+
+      res.json({
+        success: true,
+        data: {
+          points: user.loyaltyPoints,
+          tier: user.loyaltyTier
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
+
+  // @desc    Redeem loyalty points
+  // @route   POST /api/users/loyalty/redeem
+  // @access  Private
+  const redeemLoyaltyPoints = async (req, res) => {
+    try {
+      const { points } = req.body;
+      const user = await User.findById(req.user._id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      if (user.loyaltyPoints < points) {
+        return res.status(400).json({ success: false, message: 'Insufficient points' });
+      }
+
+      user.loyaltyPoints -= points;
+      user.updateLoyaltyTier();
+      await user.save();
+
+      // Log points redemption
+      // TODO: Implement points history logging
+
+      res.json({
+        success: true,
+        data: {
+          points: user.loyaltyPoints,
+          tier: user.loyaltyTier
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
+
+  // @desc    Create subscription
+  // @route   POST /api/users/subscriptions
+  // @access  Private
+  const createSubscription = async (req, res) => {
+    try {
+      const { productId, frequency, paymentMethodId } = req.body;
+      const user = await User.findById(req.user._id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      // Calculate next delivery date based on frequency
+      const nextDeliveryDate = calculateNextDeliveryDate(frequency);
+
+      const subscription = {
+        product: productId,
+        frequency,
+        nextDeliveryDate,
+        status: 'active',
+        paymentMethod: paymentMethodId
+      };
+
+      user.subscriptions.push(subscription);
+      await user.save();
+
+      res.status(201).json({
+        success: true,
+        data: subscription
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
+
+  // Helper function to calculate next delivery date
+  const calculateNextDeliveryDate = (frequency) => {
+    const date = new Date();
+    switch (frequency) {
+      case 'weekly':
+        date.setDate(date.getDate() + 7);
+        break;
+      case 'biweekly':
+        date.setDate(date.getDate() + 14);
+        break;
+      case 'monthly':
+        date.setMonth(date.getMonth() + 1);
+        break;
+    }
+    return date;
+  };
+
+  // @desc    Update subscription
+  // @route   PUT /api/users/subscriptions/:id
+  // @access  Private
+  const updateSubscription = async (req, res) => {
+    try {
+      const { frequency, status, paymentMethodId } = req.body;
+      const user = await User.findById(req.user._id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      const subscription = user.subscriptions.id(req.params.id);
+      if (!subscription) {
+        return res.status(404).json({ success: false, message: 'Subscription not found' });
+      }
+
+      if (frequency) {
+        subscription.frequency = frequency;
+        subscription.nextDeliveryDate = calculateNextDeliveryDate(frequency);
+      }
+      if (status) subscription.status = status;
+      if (paymentMethodId) subscription.paymentMethod = paymentMethodId;
+
+      await user.save();
+
+      res.json({
+        success: true,
+        data: subscription
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
+
+  // @desc    Cancel subscription
+  // @route   DELETE /api/users/subscriptions/:id
+  // @access  Private
+  const cancelSubscription = async (req, res) => {
+    try {
+      const user = await User.findById(req.user._id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      const subscription = user.subscriptions.id(req.params.id);
+      if (!subscription) {
+        return res.status(404).json({ success: false, message: 'Subscription not found' });
+      }
+
+      subscription.status = 'cancelled';
+      await user.save();
+
+      res.json({
+        success: true,
+        data: subscription
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
+
+  // @desc    Get user subscriptions
+  // @route   GET /api/users/subscriptions
+  // @access  Private
+  const getSubscriptions = async (req, res) => {
+    try {
+      const user = await User.findById(req.user._id).populate('subscriptions.product');
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      res.json({
+        success: true,
+        data: user.subscriptions
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
+
+  // @desc    Add payment method
+  // @route   POST /api/users/payment-methods
+  // @access  Private
+  const addPaymentMethod = async (req, res) => {
+    try {
+      const { type, details, isDefault } = req.body;
+      const user = await User.findById(req.user._id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      // If setting as default, unset other defaults
+      if (isDefault) {
+        user.paymentMethods.forEach(method => {
+          method.isDefault = false;
+        });
+      }
+
+      const paymentMethod = {
+        type,
+        details,
+        isDefault: isDefault || false
+      };
+
+      user.paymentMethods.push(paymentMethod);
+      await user.save();
+
+      res.status(201).json({
+        success: true,
+        data: paymentMethod
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
+
+  // @desc    Update payment method
+  // @route   PUT /api/users/payment-methods/:id
+  // @access  Private
+  const updatePaymentMethod = async (req, res) => {
+    try {
+      const { details, isDefault } = req.body;
+      const user = await User.findById(req.user._id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      const paymentMethod = user.paymentMethods.id(req.params.id);
+      if (!paymentMethod) {
+        return res.status(404).json({ success: false, message: 'Payment method not found' });
+      }
+
+      if (details) paymentMethod.details = details;
+      if (isDefault !== undefined) {
+        if (isDefault) {
+          user.paymentMethods.forEach(method => {
+            method.isDefault = false;
+          });
+        }
+        paymentMethod.isDefault = isDefault;
+      }
+
+      await user.save();
+
+      res.json({
+        success: true,
+        data: paymentMethod
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
+
+  // @desc    Delete payment method
+  // @route   DELETE /api/users/payment-methods/:id
+  // @access  Private
+  const deletePaymentMethod = async (req, res) => {
+    try {
+      const user = await User.findById(req.user._id);
+
+      if (!user) {
+        return res.status(404).json({ success: false, message: 'User not found' });
+      }
+
+      const paymentMethod = user.paymentMethods.id(req.params.id);
+      if (!paymentMethod) {
+        return res.status(404).json({ success: false, message: 'Payment method not found' });
+      }
+
+      // Don't allow deletion if it's the only payment method
+      if (user.paymentMethods.length === 1) {
+        return res.status(400).json({ success: false, message: 'Cannot delete the only payment method' });
+      }
+
+      paymentMethod.remove();
+      await user.save();
+
+      res.json({
+        success: true,
+        data: {}
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
+
   module.exports = {
     registerUser,
     registerFarmer,
     loginUser,
-    getProfile,
-    updateProfile,
     getUsers,
     getFarmers,
     verifyFarmer,
     deleteUser,
     sendVerificationEmail,
     verifyEmail,
+    getProfile,
+    updateProfile,
     updatePassword,
-    updateBillingAddress
+    updateBillingAddress,
+    guestCheckout,
+    updateNotificationPreferences,
+    getLoyaltyInfo,
+    addLoyaltyPoints,
+    redeemLoyaltyPoints,
+    createSubscription,
+    updateSubscription,
+    cancelSubscription,
+    getSubscriptions,
+    addPaymentMethod,
+    updatePaymentMethod,
+    deletePaymentMethod
   }; 

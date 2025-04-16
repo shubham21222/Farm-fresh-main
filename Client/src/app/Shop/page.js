@@ -15,6 +15,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CounterSection from '../components/CounterSection';
 import ProductCarousel from '../components/ProductCarousel';
 import { Suspense } from 'react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const categories = [
   { id: 'fruits', name: 'Organic Fruits', image: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3' },
@@ -331,7 +333,9 @@ export default function ShopPage() {
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
       </div>
     }>
+      <Header />
       <ShopContent />
+      <Footer />
     </Suspense>
   );
 }

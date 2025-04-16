@@ -14,6 +14,9 @@ const reportRoutes = require('./routes/reportRoutes');
 const farmerBrandRoutes = require('./routes/farmerBrandRoutes');
 const brandRoutes = require('./routes/brandRoutes');
 const cartRoutes = require('./routes/cartRoutes'); // Add this line
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const bulkProductRoutes = require('./routes/bulkProductRoutes');
+const reviewModerationRoutes = require('./routes/reviewModerationRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -30,18 +33,16 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use('/api/users', userRoutes);
-app.use('/api/farmer', farmerRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/marketing', marketingRoutes);
-app.use('/api/delivery-zones', deliveryZoneRoutes);
-app.use('/api/reports', reportRoutes);
-app.use('/api/farmer/brand', farmerBrandRoutes);
-app.use('/api/farmer/brand', brandRoutes);
-app.use('/api/cart', cartRoutes); // Add this line
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/cart', cartRoutes);
+app.use('/api/v1/farmers', farmerRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/products/bulk', bulkProductRoutes);
+app.use('/api/v1/reviews/moderation', reviewModerationRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

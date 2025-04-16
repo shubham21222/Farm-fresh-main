@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'farmer', 'admin'],
+    enum: ['user', 'farmer', 'admin', 'guest'],
     default: 'user'
   },
   phone: {
@@ -45,6 +45,47 @@ const userSchema = new mongoose.Schema({
   verificationToken: String,
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  // Notification preferences
+  notificationPreferences: {
+    email: { type: Boolean, default: true },
+    sms: { type: Boolean, default: false },
+    marketing: { type: Boolean, default: true },
+    orderUpdates: { type: Boolean, default: true }
+  },
+  // Loyalty program
+  loyaltyPoints: {
+    type: Number,
+    default: 0
+  },
+  loyaltyTier: {
+    type: String,
+    enum: ['bronze', 'silver', 'gold', 'platinum'],
+    default: 'bronze'
+  },
+  // Subscriptions
+  subscriptions: [{
+    product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+    frequency: {
+      type: String,
+      enum: ['weekly', 'biweekly', 'monthly']
+    },
+    nextDeliveryDate: Date,
+    status: {
+      type: String,
+      enum: ['active', 'paused', 'cancelled'],
+      default: 'active'
+    },
+    paymentMethod: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'PaymentMethod'
+    }
+  }],
+  // Payment methods
+  paymentMethods: [{
+    type: { type: String, enum: ['credit_card', 'paypal'] },
+    details: mongoose.Schema.Types.Mixed,
+    isDefault: { type: Boolean, default: false }
+  }],
   // Add farmer-specific fields
   farmName: { type: String }, // From registration form
   farmAddress: { type: String }, // Map to address in getPublicFarmerProfile
@@ -75,6 +116,19 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
     return false;
   }
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Calculate loyalty tier based on points
+userSchema.methods.updateLoyaltyTier = function() {
+  if (this.loyaltyPoints >= 10000) {
+    this.loyaltyTier = 'platinum';
+  } else if (this.loyaltyPoints >= 5000) {
+    this.loyaltyTier = 'gold';
+  } else if (this.loyaltyPoints >= 1000) {
+    this.loyaltyTier = 'silver';
+  } else {
+    this.loyaltyTier = 'bronze';
+  }
 };
 
 module.exports = mongoose.model('User', userSchema);
